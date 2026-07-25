@@ -4,7 +4,7 @@ import rl "vendor:raylib"
 import "core:fmt"
 import "core:math"
 import "core:strings"
-
+import "vecs"
 
 temp_cstring :: proc (s: string)-> cstring {
     return strings.clone_to_cstring(s, context.temp_allocator)
@@ -23,6 +23,8 @@ MOVE_COOLDOWN :: 0.19
 MOVE_INITIAL_DELAY :: 0.28
 MOVE_REPEAT_RATE :: 0.11
 FONT_SIZE :: 0.9 * CELL_SIZE
+DX :: 60
+DY :: 60
 
 //----------------------------------------------------------
 // Theme 
@@ -64,29 +66,30 @@ Direction :: enum {
 is_dark := true
 last_move_time: f64 = 0
 is_first_move := true
-selected: V2     // V2 is Vec2 {0, 0}
+selected: vecs.V2     // V2 is Vec2 {0, 0}
 digit := " "
-current_theme :: proc() -> Theme {
-    return is_dark ? dark_theme : light_theme
-}
 
 
 // ---------------------------------------------------------
 main :: proc() {
+    current_theme :: proc() -> Theme {
+        return is_dark ? dark_theme : light_theme
+    }
     rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 4")
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
 
     for !rl.WindowShouldClose() {
+        theme := current_theme()
+
         // ---------- event handlers ---------- 
         handle_theme_toggle()
         handle_mouse_click()
         handle_keys()
         handle_tab_navigation()
-        handle_get_number()
+        handle_get_number(theme)
 
         // ---------- Draw ----------
-        theme := current_theme()
 
         rl.BeginDrawing()
         rl.ClearBackground(theme.bg)
@@ -108,13 +111,13 @@ handle_mouse_click :: proc() {
         mouse := rl.GetMousePosition()
 
         // Convert mouse position into grid coords
-        col := int(mouse.x - f32(GRID_ORIGIN_X)) / CELL_SIZE
-        row := int(mouse.y - f32(GRID_ORIGIN_Y)) / CELL_SIZE
+        row := int(mouse.x - f32(GRID_ORIGIN_X)) / CELL_SIZE
+        col := int(mouse.y - f32(GRID_ORIGIN_Y)) / CELL_SIZE
 
         // Only accept clicks inside the grid
         if row >= 0 && row < 9 && col >= 0 && col < 9 {
-            selected.y = row
-            selected.x = col
+            selected.x = row
+            selected.y = col
         }
     }
 }
@@ -168,62 +171,66 @@ handle_tab_navigation :: proc() {
     if rl.IsKeyPressed(.TAB) && !rl.IsKeyDown(.LEFT_SHIFT) &&
         !rl.IsKeyDown(.RIGHT_SHIFT) {
             // which block are we currently in? (0, 1, or 2)
-            block_row := selected.y / 3 
-            block_col := selected.x / 3 
+            block_row := selected.x / 3 
+            block_col := selected.y / 3 
             
             // Move to the next block
-            block_col += 1
-            if block_col > 2 {
-                block_col = 0
-                block_row += 1
-                if block_row > 2 {
-                    block_row = 0
+            block_row += 1
+            if block_row > 2 {
+                block_row = 0
+                block_col += 1
+                if block_col > 2 {
                     block_col = 0
+                    block_row = 0
                 }
             }
-            fmt.println(block_row, block_col)
+            // fmt.println(block_row, block_col)
 
             // land on the top-left cell of that block 
-            selected.y = block_row * 3
-            selected.x = block_col * 3
+            selected.x = block_row * 3
+            selected.y = block_col * 3
     }
 
     // Shift+Tab jump to the previous 3x3 block (backward)
     if rl.IsKeyPressed(.TAB) && (rl.IsKeyDown(.LEFT_SHIFT) ||
         rl.IsKeyDown(.RIGHT_SHIFT)) {
             // get current block
-            block_row := selected.y / 3
-            block_col := selected.x /3 
+            block_row := selected.x / 3
+            block_col := selected.y /3 
 
             // move to previous block
-            block_col -= 1
-            if block_col < 0 {
-                block_col = 2 
-                block_row -= 1
-                if block_row < 0 {
-                    block_row = 2 
+            block_row -= 1
+            if block_row < 0 {
+                block_row = 2 
+                block_col -= 1
+                if block_col < 0 {
+                    block_col = 2 
                 }
             }
 
-            selected.y = block_row * 3 
-            selected.x = block_col * 3
+            selected.x = block_row * 3 
+            selected.y = block_col * 3
     }
 }
 
-handle_get_number :: proc(){
-    theme := current_theme()
+handle_get_number :: proc(theme: Theme){
+    // theme := current_theme()
     key := rl.GetCharPressed()
     if key > 48 && key < 58 {
-        draw_text(key,theme)
+        draw_text(key, selected, theme)
         // fmt.println(key)
     }
     if rl.IsKeyPressed(.BACKSPACE) || rl.IsKeyPressed(.DELETE) {
+        key = 0
+        draw_text(key, selected, theme)
         fmt.println("BLANK ME BABY!")
     }
 }
 
-draw_text :: proc(digit: rune,theme: Theme) {
-    rl.DrawText(temp_cstring(digit), i32(selected.x + 15), i32(selected.y + 5), FONT_SIZE, theme.font_color )
+draw_text :: proc(digit: rune,position: vecs.V2, theme: Theme) {
+    // fmt.println("character pos:",position.x,position.y)
+    rl.DrawText(temp_cstring(fmt.tprintf("%c", digit)), i32(position.x * DX + 15),
+        i32(position.y * DY + 5), FONT_SIZE, theme.font_color )
 }
 
 draw_grid :: proc(theme: Theme) {
