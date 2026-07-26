@@ -23,8 +23,8 @@ MOVE_COOLDOWN :: 0.19
 MOVE_INITIAL_DELAY :: 0.28
 MOVE_REPEAT_RATE :: 0.11
 FONT_SIZE :: 0.9 * CELL_SIZE
-DX :: 60
-DY :: 60
+DX :: CELL_SIZE
+DY :: CELL_SIZE
 
 //----------------------------------------------------------
 // Theme 
@@ -34,7 +34,9 @@ Theme :: struct {
     line_thin:      rl.Color,
     line_thick:     rl.Color,
     highlight:      rl.Color,
+    highlight_r_c: rl.Color,
     font_color:     rl.Color,
+    error_color:    rl.Color,
 }
 
 light_theme := Theme {
@@ -42,7 +44,9 @@ light_theme := Theme {
     line_thin       = rl.LIGHTGRAY,
     line_thick      = rl.BLACK,
     highlight       = {100, 180, 255, 100}, // soft blue, semi-transparent
+    highlight_r_c   = {100, 180, 255, 50}, // very soft row,col
     font_color      = rl.BLACK,
+    error_color     = rl.RED,
 }
 
 dark_theme := Theme {
@@ -50,7 +54,15 @@ dark_theme := Theme {
     line_thin       = {80, 80, 80, 255},    // medium gray 
     line_thick      = {200, 200, 200, 255}, // light gray / almost white 
     highlight       = {80, 140, 220, 120},  // a bit stronger blue for dark mode
+    highlight_r_c  = {80, 140, 220, 50},   // very soft row,col
     font_color      = rl.RAYWHITE,
+    error_color     = rl.RED,
+}
+
+Cell :: struct {
+    pos:    vecs.V2,  // pos.x = selected.x * DX + 15, pos.y = selected.y * DY +
+                      // 5
+    num:    int,      // 0 - 9, 0 is for blank cell 
 }
 
 // Enums
@@ -62,12 +74,14 @@ Direction :: enum {
     Down,
 }
 
+
 // init global variables
 is_dark := true
 last_move_time: f64 = 0
 is_first_move := true
 selected: vecs.V2     // V2 is Vec2 {0, 0}
-digit := " "
+digit := 0
+board: [9][9]int
 
 
 // ---------------------------------------------------------
@@ -75,7 +89,13 @@ main :: proc() {
     current_theme :: proc() -> Theme {
         return is_dark ? dark_theme : light_theme
     }
-    rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 4")
+    rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 6")
+
+    // Load RobotoMono-Medium
+    font := rl.LoadFont("assets/fonts/static/RobotoMono-Regular.ttf")
+    defer rl.UnloadFont(font)
+    rl.SetTextureFilter(font.texture, .BILINEAR)
+
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
 
@@ -94,7 +114,7 @@ main :: proc() {
         rl.BeginDrawing()
         rl.ClearBackground(theme.bg)
 
-        draw_grid(theme)
+        draw_grid(theme, font)
 
         rl.EndDrawing()
     }
@@ -214,17 +234,35 @@ handle_tab_navigation :: proc() {
 }
 
 handle_get_number :: proc(theme: Theme){
-    // theme := current_theme()
     key := rl.GetCharPressed()
-    if key > 48 && key < 58 {
-        draw_text(key, selected, theme)
-        // fmt.println(key)
+    if key >= '1' && key <= '9' {
+        digit := int(key - '0')
+        board[selected.x][selected.y] = digit
     }
+
     if rl.IsKeyPressed(.BACKSPACE) || rl.IsKeyPressed(.DELETE) {
-        key = 0
-        draw_text(key, selected, theme)
-        fmt.println("BLANK ME BABY!")
+        board[selected.x][selected.y] = 0
     }
+}
+
+// Number conflict helper
+has_conflict :: proc(row, col, value: int) -> bool {
+    if value == 0 do return false 
+
+    // Check the rest of the row (same x)
+    for c in 0..<9 {
+        if c  != col && board[row][c] == value {
+            return true
+        }
+    }
+
+    // Chedk the rest of the column 
+    for r in 0..<9 {
+        if r != row && board[r][col] == value {
+            return true
+        }
+    }
+    return false
 }
 
 draw_text :: proc(digit: rune,position: vecs.V2, theme: Theme) {
@@ -233,7 +271,7 @@ draw_text :: proc(digit: rune,position: vecs.V2, theme: Theme) {
         i32(position.y * DY + 5), FONT_SIZE, theme.font_color )
 }
 
-draw_grid :: proc(theme: Theme) {
+draw_grid :: proc(theme: Theme, font: rl.Font) {
     // Draw the light cell lines
     for i in 0..=9 {
         thickness := f32(1)
@@ -273,4 +311,61 @@ draw_grid :: proc(theme: Theme) {
         theme.highlight,
     )
 
+    // Draw crosshair over row + col
+    
+    // Horizontal bar 
+    for x in 0..<9 {
+        if x == selected.x do continue 
+
+        rl.DrawRectangleRec(
+            {
+                f32(GRID_ORIGIN_X + x * CELL_SIZE),
+                cell_y,
+                f32(CELL_SIZE),
+                f32(CELL_SIZE),
+            },
+            theme.highlight_r_c,
+        )
+    }
+
+    // Vertical bar
+    for y in 0..<9 {
+        if y == selected.y do continue
+
+        rl.DrawRectangleRec(
+            {
+                cell_x,
+                f32(GRID_ORIGIN_Y + y * CELL_SIZE),
+                f32(CELL_SIZE),
+                f32(CELL_SIZE),
+            },
+            theme.highlight_r_c,
+        )
+    }
+
+    // Draw numbers 
+    for row in 0..<9 {
+        for col in 0..<9 {
+            val := board[row][col]
+            if val == 0 do continue
+            
+            text := temp_cstring(fmt.tprintf("%d", val))
+
+            screen_x := i32(row * CELL_SIZE + 15)
+            screen_y := i32(col * CELL_SIZE + 5)
+
+            color := theme.font_color
+            if has_conflict(row,col,val) {
+                color = theme.error_color
+            }
+
+            rl.DrawTextEx(
+                font,
+                text, 
+                {f32(screen_x), f32(screen_y)}, 
+                f32(FONT_SIZE),
+                1.0,
+                color,)
+        }
+    }
 }
