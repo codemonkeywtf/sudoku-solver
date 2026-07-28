@@ -6,10 +6,6 @@ import "core:math"
 import "core:strings"
 import "vecs"
 
-temp_cstring :: proc (s: string)-> cstring {
-    return strings.clone_to_cstring(s, context.temp_allocator)
-}
-
 // ------------------------------------------------------------
 // Constants
 // ------------------------------------------------------------
@@ -76,6 +72,8 @@ Direction :: enum {
 
 
 // init global variables
+exit_window_requested: bool
+exit_window: bool 
 is_dark := true
 last_move_time: f64 = 0
 is_first_move := true
@@ -90,6 +88,7 @@ main :: proc() {
         return is_dark ? dark_theme : light_theme
     }
     rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 6")
+    rl.SetExitKey(.KEY_NULL)
 
     // Load RobotoMono-Medium
     font := rl.LoadFont("assets/fonts/static/RobotoMono-Regular.ttf")
@@ -99,7 +98,18 @@ main :: proc() {
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
 
-    for !rl.WindowShouldClose() {
+    for !exit_window {
+        if rl.WindowShouldClose() || rl.IsKeyPressed(.ESCAPE) {
+            exit_window_requested = true
+        }
+
+        if exit_window_requested {
+            if rl.IsKeyPressed(.Y) {
+                exit_window = true
+            } else if rl.IsKeyPressed(.N) {
+                exit_window_requested = false
+            }
+        }
         theme := current_theme()
 
         // ---------- event handlers ---------- 
@@ -112,9 +122,10 @@ main :: proc() {
         // ---------- Draw ----------
 
         rl.BeginDrawing()
-        rl.ClearBackground(theme.bg)
 
-        draw_grid(theme, font)
+            rl.ClearBackground(theme.bg)
+            draw_grid(theme, font)
+            draw_exit_window(theme, font)
 
         rl.EndDrawing()
     }
@@ -204,7 +215,6 @@ handle_tab_navigation :: proc() {
                     block_row = 0
                 }
             }
-            // fmt.println(block_row, block_col)
 
             // land on the top-left cell of that block 
             selected.x = block_row * 3
@@ -263,6 +273,25 @@ has_conflict :: proc(row, col, value: int) -> bool {
         }
     }
     return false
+}
+
+// string to cstring helper
+temp_cstring :: proc (s: string)-> cstring {
+    return strings.clone_to_cstring(s, context.temp_allocator)
+}
+
+draw_exit_window :: proc(theme: Theme, font: rl.Font) {
+    if !exit_window_requested do return
+
+    rl.DrawRectangle(20, 220, WINDOW_WIDTH -50, 100, theme.bg)
+    rl.DrawTextEx(
+        font, 
+        "Are you sure you want to exit program? [Y/N]",
+        {50.0, 260.0},
+        20.0,
+        1.0,
+        theme.font_color)
+    rl.DrawRectangleLines(20,220,WINDOW_WIDTH - 50, 100, theme.line_thick)
 }
 
 draw_text :: proc(digit: rune,position: vecs.V2, theme: Theme) {
