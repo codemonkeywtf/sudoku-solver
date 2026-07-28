@@ -55,11 +55,11 @@ dark_theme := Theme {
     error_color     = rl.RED,
 }
 
-Cell :: struct {
-    pos:    vecs.V2,  // pos.x = selected.x * DX + 15, pos.y = selected.y * DY +
-                      // 5
-    num:    int,      // 0 - 9, 0 is for blank cell 
-}
+// Cell :: struct {
+//     pos:    vecs.V2,  // pos.x = selected.x * DX + 15, pos.y = selected.y * DY +
+//                       // 5
+//     num:    int,      // 0 - 9, 0 is for blank cell 
+// }
 
 // Enums
 Direction :: enum {
@@ -78,7 +78,6 @@ is_dark := true
 last_move_time: f64 = 0
 is_first_move := true
 selected: vecs.V2     // V2 is Vec2 {0, 0}
-digit := 0
 board: [9][9]int
 
 
@@ -292,12 +291,6 @@ draw_exit_window :: proc(theme: Theme, font: rl.Font) {
         1.0,
         theme.font_color)
     rl.DrawRectangleLines(20,220,WINDOW_WIDTH - 50, 100, theme.line_thick)
-}
-
-draw_text :: proc(digit: rune,position: vecs.V2, theme: Theme) {
-    // fmt.println("character pos:",position.x,position.y)
-    rl.DrawText(temp_cstring(fmt.tprintf("%c", digit)), i32(position.x * DX + 15),
-        i32(position.y * DY + 5), FONT_SIZE, theme.font_color )
 }
 
 draw_grid :: proc(theme: Theme, font: rl.Font) {
