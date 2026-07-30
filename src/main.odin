@@ -6,6 +6,21 @@ import "core:math"
 import "core:strings"
 import "vecs"
 
+/*
+    [
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+        [ 0,0,0,  0,0,0,  0,0,0 ],
+    ]
+ */
 // ------------------------------------------------------------
 // Constants
 // ------------------------------------------------------------
@@ -78,14 +93,15 @@ is_dark := true
 last_move_time: f64 = 0
 is_first_move := true
 selected: vecs.V2     // V2 is Vec2 {0, 0}
+space_num := 0
 board: [9][9]int
-
 
 // ---------------------------------------------------------
 main :: proc() {
     current_theme :: proc() -> Theme {
         return is_dark ? dark_theme : light_theme
     }
+    fmt.println(board)
     rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 6")
     rl.SetExitKey(.KEY_NULL)
 
@@ -159,13 +175,13 @@ handle_keys :: proc() {
     dir := Direction.None
     
     switch {
-    case rl.IsKeyDown(.RIGHT) || rl.IsKeyDown(.L):
+    case rl.IsKeyDown(.RIGHT) || rl.IsKeyDown(.L) || rl.IsKeyDown(.D):
         dir = .Right 
-    case rl.IsKeyDown(.LEFT) || rl.IsKeyDown(.H):
+    case rl.IsKeyDown(.LEFT) || rl.IsKeyDown(.H) || rl.IsKeyDown(.A):
         dir = .Left
-    case rl.IsKeyDown(.DOWN) || rl.IsKeyDown(.J):
+    case rl.IsKeyDown(.DOWN) || rl.IsKeyDown(.J) || rl.IsKeyDown(.S):
         dir = .Down
-    case rl.IsKeyDown(.UP) || rl.IsKeyDown(.K):
+    case rl.IsKeyDown(.UP) || rl.IsKeyDown(.K) || rl.IsKeyDown(.W):
         dir = .Up
     }
 
@@ -193,6 +209,8 @@ handle_keys :: proc() {
     }
 
     last_move_time = now
+    block := which_block()
+    // fmt.println("cursor is in block: ", block)
 }
 
 handle_tab_navigation :: proc() {
@@ -201,57 +219,75 @@ handle_tab_navigation :: proc() {
     if rl.IsKeyPressed(.TAB) && !rl.IsKeyDown(.LEFT_SHIFT) &&
         !rl.IsKeyDown(.RIGHT_SHIFT) {
             // which block are we currently in? (0, 1, or 2)
-            block_row := selected.x / 3 
-            block_col := selected.y / 3 
+            block := which_block()
+            funx, funy := block.x, block.y 
+            for x in funx..<block.x+3 {
+                for y in funy..<block.y+3 {
+                    fmt.println("cell =",x,y, board[x][y])
+                }
+            }
             
             // Move to the next block
-            block_row += 1
-            if block_row > 2 {
-                block_row = 0
-                block_col += 1
-                if block_col > 2 {
-                    block_col = 0
-                    block_row = 0
+            block.x += 1
+            if block.x > 2 {
+                block.x = 0
+                block.y += 1
+                if block.y > 2 {
+                    block.y = 0
+                    block.x = 0
                 }
             }
 
             // land on the top-left cell of that block 
-            selected.x = block_row * 3
-            selected.y = block_col * 3
+            selected.x = block.x * 3
+            selected.y = block.y * 3
     }
 
     // Shift+Tab jump to the previous 3x3 block (backward)
     if rl.IsKeyPressed(.TAB) && (rl.IsKeyDown(.LEFT_SHIFT) ||
         rl.IsKeyDown(.RIGHT_SHIFT)) {
             // get current block
-            block_row := selected.x / 3
-            block_col := selected.y /3 
+            block := which_block()
 
             // move to previous block
-            block_row -= 1
-            if block_row < 0 {
-                block_row = 2 
-                block_col -= 1
-                if block_col < 0 {
-                    block_col = 2 
+            block.x -= 1
+            if block.x < 0 {
+                block.x = 2 
+                block.y -= 1
+                if block.y < 0 {
+                    block.y = 2 
                 }
             }
 
-            selected.x = block_row * 3 
-            selected.y = block_col * 3
+            selected.x = block.x * 3 
+            selected.y = block.y * 3
     }
 }
 
 handle_get_number :: proc(theme: Theme){
+    digit := board[selected.x][selected.y]
     key := rl.GetCharPressed()
     if key >= '1' && key <= '9' {
-        digit := int(key - '0')
-        board[selected.x][selected.y] = digit
+        digit = int(key - '0')
+    } else if rl.IsKeyPressed(.BACKSPACE) || rl.IsKeyPressed(.DELETE) {
+            digit = 0
     }
+    board[selected.x][selected.y] = digit
+    block := which_block()
+    // block.x *= 3 
+    // block.y *= 3
+    // fmt.println("I am", digit, "in block:", block, "selected:", selected)
+}
 
-    if rl.IsKeyPressed(.BACKSPACE) || rl.IsKeyPressed(.DELETE) {
-        board[selected.x][selected.y] = 0
-    }
+// find my block helper
+which_block :: proc () -> vecs.V2 {
+    // get current block
+    block_row := selected.x / 3 
+    block_col := selected.y / 3
+
+    block: vecs.V2 = {block_row, block_col}
+    // fmt.println("current block: ", block)
+    return block
 }
 
 // Number conflict helper
@@ -373,10 +409,15 @@ draw_grid :: proc(theme: Theme, font: rl.Font) {
             
             text := temp_cstring(fmt.tprintf("%d", val))
 
+            // position in cell with padding to center number
             screen_x := i32(row * CELL_SIZE + 15)
             screen_y := i32(col * CELL_SIZE + 5)
 
             color := theme.font_color
+            // todo this needs to check the 3x3 block
+
+            // this should probably be has_conflict_row_col, although I might be
+            // able to check which_block() 
             if has_conflict(row,col,val) {
                 color = theme.error_color
             }
