@@ -6,7 +6,7 @@ import "core:math"
 import "core:strings"
 import "vecs"
 
-/*
+/*  visualize the board array
     [
         [ 0,0,0,  0,0,0,  0,0,0 ],
         [ 0,0,0,  0,0,0,  0,0,0 ],
