@@ -165,6 +165,9 @@ handle_mouse_click :: proc() {
         if row >= 0 && row < 9 && col >= 0 && col < 9 {
             selected.x = row
             selected.y = col
+            m_blk := which_block()
+            fmt.println("mouse block =", m_blk)
+            fmt.println("selected cell is", selected)
         }
     }
 }
@@ -221,12 +224,14 @@ handle_tab_navigation :: proc() {
         !rl.IsKeyDown(.RIGHT_SHIFT) {
             // which block are we currently in? (0, 1, or 2)
             block := which_block()
-            funx, funy := block.x, block.y 
-            for x in funx..<block.x+3 {
-                for y in funy..<block.y+3 {
-                    fmt.println("cell =",x,y, board[x][y])
+            funx, funy := block.x * 3, block.y * 3 
+            for y in funy..< funy + 3 {
+                for x in funx..< funx + 3 {
+                    fmt.printf("%v, ", board[x][y])
                 }
+                fmt.println()
             }
+            fmt.println()
             
             // Move to the next block
             block.x += 1
@@ -275,6 +280,8 @@ handle_get_number :: proc(theme: Theme){
     }
     board[selected.x][selected.y] = digit
     block := which_block()
+    thing := block_array()
+    fmt.println("thing is", thing)
     // block.x *= 3 
     // block.y *= 3
     // fmt.println("I am", digit, "in block:", block, "selected:", selected)
@@ -309,6 +316,33 @@ has_conflict :: proc(row, col, value: int) -> bool {
         }
     }
     return false
+}
+
+has_block_conflict :: proc(a: [9]int) -> bool {
+    for i in 0..<9 {
+        for j in i+1..<9 {
+            if a[i] == a[j] && a[i] != 0 && a[j] != 0 {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+block_array :: proc() -> [9]int {
+    _block := which_block()
+    block: [9]int
+    count := 0
+    row, col := _block.x * 3, _block.y * 3 
+    for y in col..< col + 3 {
+        for x in row..< row + 3 {
+            if board[x][y] > 0 {
+                block[count] = board[x][y]
+                count += 1
+            }
+        }
+    }
+    return block
 }
 
 // string to cstring helper
@@ -419,7 +453,8 @@ draw_grid :: proc(theme: Theme, font: rl.Font) {
 
             // this should probably be has_conflict_row_col, although I might be
             // able to check which_block() 
-            if has_conflict(row,col,val) {
+            block := block_array()
+            if has_conflict(row,col,val) || has_block_conflict(block) {
                 color = theme.error_color
             }
 
