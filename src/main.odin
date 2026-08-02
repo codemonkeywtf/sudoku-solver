@@ -6,22 +6,6 @@ import "core:math"
 import "core:strings"
 import "vecs"
 
-/*  visualize the board array
-    [
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-        [ 0,0,0,  0,0,0,  0,0,0 ],
-    ]
- */
-
 // ------------------------------------------------------------
 // Constants
 // ------------------------------------------------------------
@@ -46,9 +30,11 @@ Theme :: struct {
     line_thin:      rl.Color,
     line_thick:     rl.Color,
     highlight:      rl.Color,
-    highlight_r_c: rl.Color,
+    highlight_r_c:  rl.Color,
     font_color:     rl.Color,
     error_color:    rl.Color,
+    locked_bg:      rl.Color,
+    locked_outline: rl.Color,
 }
 
 light_theme := Theme {
@@ -56,9 +42,11 @@ light_theme := Theme {
     line_thin       = rl.LIGHTGRAY,
     line_thick      = rl.BLACK,
     highlight       = {100, 180, 255, 100}, // soft blue, semi-transparent
-    highlight_r_c   = {100, 180, 255, 50}, // very soft row,col
+    highlight_r_c   = {100, 180, 255, 50},  // very soft row,col
     font_color      = rl.BLACK,
     error_color     = rl.RED,
+    locked_bg       = {220, 230, 250, 80},  // soft blue-ish tint
+    locked_outline  = {190, 170, 230, 200}   // very soft lavender
 }
 
 dark_theme := Theme {
@@ -66,16 +54,17 @@ dark_theme := Theme {
     line_thin       = {80, 80, 80, 255},    // medium gray 
     line_thick      = {200, 200, 200, 255}, // light gray / almost white 
     highlight       = {80, 140, 220, 120},  // a bit stronger blue for dark mode
-    highlight_r_c  = {80, 140, 220, 50},   // very soft row,col
+    highlight_r_c  = {80, 140, 220, 50},    // very soft row,col
     font_color      = rl.RAYWHITE,
     error_color     = rl.RED,
+    locked_bg       = {50, 70, 110, 90},    // slightly lighter/cooler dark blue
+    locked_outline  = {70, 170, 160, 100}  // soft teal
 }
 
-// Cell :: struct {
-//     pos:    vecs.V2,  // pos.x = selected.x * DX + 15, pos.y = selected.y * DY +
-//                       // 5
-//     num:    int,      // 0 - 9, 0 is for blank cell 
-// }
+Fonts :: struct {
+    regular: rl.Font,
+    bold:    rl.Font,
+}
 
 // Enums
 Direction :: enum {
@@ -96,6 +85,7 @@ is_first_move := true
 selected: vecs.V2     // V2 is Vec2 {0, 0}
 space_num := 0
 board: [9][9]int
+locked: [9][9]bool  // true = this cell cannot be changed 
 
 // ---------------------------------------------------------
 main :: proc() {
@@ -107,9 +97,16 @@ main :: proc() {
     rl.SetExitKey(.KEY_NULL)
 
     // Load RobotoMono-Medium
-    font := rl.LoadFont("assets/fonts/static/RobotoMono-Regular.ttf")
-    defer rl.UnloadFont(font)
-    rl.SetTextureFilter(font.texture, .BILINEAR)
+    fonts := Fonts{
+        regular = rl.LoadFont("assets/fonts/static/RobotoMono-Light.ttf"),
+        bold    = rl.LoadFont("assets/fonts/static/RobotoMono-SemiBold.ttf"),
+    }
+    defer {
+        rl.UnloadFont(fonts.regular)
+        rl.UnloadFont(fonts.bold)
+    }
+    rl.SetTextureFilter(fonts.regular.texture, .BILINEAR)
+    rl.SetTextureFilter(fonts.bold.texture, .BILINEAR)
 
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
@@ -133,6 +130,7 @@ main :: proc() {
         handle_mouse_click()
         handle_keys()
         handle_tab_navigation()
+        handle_lock_keys()
         handle_get_number(theme)
 
         // ---------- Draw ----------
@@ -140,8 +138,8 @@ main :: proc() {
         rl.BeginDrawing()
 
             rl.ClearBackground(theme.bg)
-            draw_grid(theme, font)
-            draw_exit_window(theme, font)
+            draw_grid(theme, fonts)
+            draw_exit_window(theme, fonts.regular)
 
         rl.EndDrawing()
     }
@@ -165,14 +163,18 @@ handle_mouse_click :: proc() {
         if row >= 0 && row < 9 && col >= 0 && col < 9 {
             selected.x = row
             selected.y = col
-            m_blk := which_block()
-            fmt.println("mouse block =", m_blk)
-            fmt.println("selected cell is", selected)
         }
     }
 }
 
 handle_keys :: proc() {
+    ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
+    shift := rl.IsKeyDown(.LEFT_SHIFT)  || rl.IsKeyDown(.RIGHT_SHIFT)
+    // don't move!
+    if ctrl && shift {
+        return
+    }
+
     now := rl.GetTime()
 
     // Arrow vim style key movement (wraps inside the current row/column)
@@ -218,21 +220,10 @@ handle_keys :: proc() {
 }
 
 handle_tab_navigation :: proc() {
-
+    block := which_block()
     // Tab jump to next 3x3 block (forward)
     if rl.IsKeyPressed(.TAB) && !rl.IsKeyDown(.LEFT_SHIFT) &&
         !rl.IsKeyDown(.RIGHT_SHIFT) {
-            // which block are we currently in? (0, 1, or 2)
-            block := which_block()
-            funx, funy := block.x * 3, block.y * 3 
-            for y in funy..< funy + 3 {
-                for x in funx..< funx + 3 {
-                    fmt.printf("%v, ", board[x][y])
-                }
-                fmt.println()
-            }
-            fmt.println()
-            
             // Move to the next block
             block.x += 1
             if block.x > 2 {
@@ -270,7 +261,36 @@ handle_tab_navigation :: proc() {
     }
 }
 
+handle_lock_keys :: proc() {
+    ctrl    := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
+    shift   := rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT)
+
+    if ctrl && shift && rl.IsKeyPressed(.L) {
+        // lock every cell that currently has a number
+        for r in 0..<9 {
+            for c in 0..<9 {
+                if board[r][c] != 0 {
+                    locked[r][c] = true
+                }
+            }
+        }
+    }
+
+    if ctrl && shift && rl.IsKeyPressed(.U) {
+        // unlock all cells
+        for r in 0..<9 {
+            for c in 0..<9 {
+                locked[r][c] = false
+            }
+        }
+    }
+}
+
 handle_get_number :: proc(theme: Theme){
+    if locked[selected.x][selected.y] {
+        return 
+    }
+
     digit := board[selected.x][selected.y]
     key := rl.GetCharPressed()
     if key >= '1' && key <= '9' {
@@ -279,12 +299,6 @@ handle_get_number :: proc(theme: Theme){
             digit = 0
     }
     board[selected.x][selected.y] = digit
-    block := which_block()
-    thing := block_array()
-    fmt.println("thing is", thing)
-    // block.x *= 3 
-    // block.y *= 3
-    // fmt.println("I am", digit, "in block:", block, "selected:", selected)
 }
 
 // find my block helper
@@ -294,7 +308,6 @@ which_block :: proc () -> vecs.V2 {
     block_col := selected.y / 3
 
     block: vecs.V2 = {block_row, block_col}
-    // fmt.println("current block: ", block)
     return block
 }
 
@@ -315,34 +328,19 @@ has_conflict :: proc(row, col, value: int) -> bool {
             return true
         }
     }
-    return false
-}
 
-has_block_conflict :: proc(a: [9]int) -> bool {
-    for i in 0..<9 {
-        for j in i+1..<9 {
-            if a[i] == a[j] && a[i] != 0 && a[j] != 0 {
+    // Check 3x3 Block 
+    start_row := (row/3) * 3 
+    start_col := (col/3) * 3 
+
+    for r in start_row..<start_row + 3 {
+        for c in start_col..<start_col + 3 {
+            if (r != row  || c != col) && board[r][c] == value {
                 return true
             }
         }
     }
     return false
-}
-
-block_array :: proc() -> [9]int {
-    _block := which_block()
-    block: [9]int
-    count := 0
-    row, col := _block.x * 3, _block.y * 3 
-    for y in col..< col + 3 {
-        for x in row..< row + 3 {
-            if board[x][y] > 0 {
-                block[count] = board[x][y]
-                count += 1
-            }
-        }
-    }
-    return block
 }
 
 // string to cstring helper
@@ -364,7 +362,7 @@ draw_exit_window :: proc(theme: Theme, font: rl.Font) {
     rl.DrawRectangleLines(20,220,WINDOW_WIDTH - 50, 100, theme.line_thick)
 }
 
-draw_grid :: proc(theme: Theme, font: rl.Font) {
+draw_grid :: proc(theme: Theme, fonts: Fonts) {
     // Draw the light cell lines
     for i in 0..=9 {
         thickness := f32(1)
@@ -442,6 +440,29 @@ draw_grid :: proc(theme: Theme, font: rl.Font) {
             val := board[row][col]
             if val == 0 do continue
             
+            // locked background tint
+            if locked[row][col] && val != 0 {
+                rect := rl.Rectangle{
+                    f32(GRID_ORIGIN_X + row * CELL_SIZE),
+                    f32(GRID_ORIGIN_Y + col * CELL_SIZE),
+                    f32(CELL_SIZE),
+                    f32(CELL_SIZE),
+                }
+
+                rl.DrawRectangleRec(
+                    {
+                        f32(GRID_ORIGIN_X + row * CELL_SIZE),
+                        f32(GRID_ORIGIN_Y + col * CELL_SIZE),
+                        f32(CELL_SIZE),
+                        f32(CELL_SIZE),
+                    },
+                    theme.locked_bg,
+                )
+
+                outline_color := theme.locked_outline
+                rl.DrawRectangleLinesEx(rect, 1.75, outline_color)
+            }
+
             text := temp_cstring(fmt.tprintf("%d", val))
 
             // position in cell with padding to center number
@@ -449,17 +470,18 @@ draw_grid :: proc(theme: Theme, font: rl.Font) {
             screen_y := i32(col * CELL_SIZE + 5)
 
             color := theme.font_color
-            // todo this needs to check the 3x3 block
 
-            // this should probably be has_conflict_row_col, although I might be
-            // able to check which_block() 
-            block := block_array()
-            if has_conflict(row,col,val) || has_block_conflict(block) {
+            if has_conflict(row,col,val) {
                 color = theme.error_color
             }
 
+            font_to_use := fonts.regular
+            if locked[row][col] {
+                font_to_use = fonts.bold
+            }
+
             rl.DrawTextEx(
-                font,
+                font_to_use,
                 text, 
                 {f32(screen_x), f32(screen_y)}, 
                 f32(FONT_SIZE),
