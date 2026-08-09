@@ -1,10 +1,14 @@
 package events
 
-import rl "vendor:raylib"
-import "core:math"
-import "core:strings"
-// import "src:state"
-// import v "src:vecs"
+import "src:state"
+//---------- ORCHESTRATOR ----------\\
 
-//---------- MOUSE EVENTS ----------\\
+handle_input :: proc(game: ^state.Game) {
+    handle_theme_toggle(game)
+    handle_keys(game)
+    handle_tab_navigation(game)
+    handle_lock_keys(game)
+    handle_get_number(game) 
+    handle_mouse_click(game)
+}
 

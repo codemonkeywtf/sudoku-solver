@@ -132,7 +132,7 @@ handle_lock_keys :: proc(game: ^state.Game) {
     }
 }
 
-handle_get_number :: proc(game: ^state.Game, theme: ^theme.Theme) {
+handle_get_number :: proc(game: ^state.Game) {
     if game.locked[game.selected.x][game.selected.y] {
         return
     }

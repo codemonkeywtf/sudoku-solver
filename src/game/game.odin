@@ -28,6 +28,7 @@ run :: proc() {
 
     game := state.game_init()
     font := fonts.init()
+    defer fonts.destroy(&font)
 
     for !game.exit_window {
         //---------- to close or not to close ----------\\
@@ -45,13 +46,7 @@ run :: proc() {
         theme :=  game.is_dark ? theme.dark_theme : theme.light_theme
 
         //---------- event handlers ----------\\
-        events.handle_get_number(&game, &theme)
-        events.handle_keys(&game)
-        events.handle_lock_keys(&game)
-        mouse.handle_mouse_click(&game)
-        events.handle_tab_navigation(&game)
-        events.handle_theme_toggle(&game)
-
+        events.handle_input(&game)
 
         //---------- DRAW----------\\
         rl.BeginDrawing()

@@ -1,7 +1,6 @@
 package state
 
-import rl "vendor:raylib"
-import v "../vecs"
+import v "src:vecs"
 
 // ------------------------------------------------------------
 // Constants

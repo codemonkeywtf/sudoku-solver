@@ -1,0 +1,67 @@
+Sudoku Solver (Odin + Raylib 6) — TODO
+======================================
+
+Last updated: 2026-08-09
+
+
+DONE
+----
+[x] 9x9 grid, themes (light/dark), navigation (mouse, arrows, hjkl/wasd, Tab blocks)
+[x] Number entry, clear cell, conflict highlight (row/col/box)
+[x] Lock/unlock toggle (Ctrl+Shift+L), clear unlocked (Ctrl+Shift+C)
+[x] Exit confirmation, monospaced fonts, locked cell visuals
+[x] Package refactor (root main.odin, src: collection, Game state, events/render/...)
+[x] Feature parity after refactor
+
+
+CLEANUP (before merge to master)
+--------------------------------
+[ ] Fix typo: thinckness -> thickness in render.odin
+[ ] defer fonts.destroy(&font) after fonts.init() in game.run
+[ ] state.odin: use import "src:vecs" instead of "../vecs"
+[ ] handle_get_number: remove unused theme parameter
+[ ] Remove src/main.odin.bak
+[ ] Remove src/logic/conflict.odin (logic lives in helpers)
+[ ] Move raydocs/ out of repo (e.g. ~/workspace/Odin)
+[ ] Optional: trim empty events.odin or add real orchestrator
+[ ] Keep src/logic/solver.odin as placeholder (or add a one-line comment)
+
+
+NEXT (core)
+-----------
+[ ] Save / Load puzzles
+    - Keyboard shortcuts (Ctrl+S / Ctrl+O) first
+    - Simple file format (text or small structured format)
+    - Design functions so UI/menus can call them later
+[ ] Backtracking solver
+    - Fill empty cells; respect locked cells as givens
+    - No separate "Unsolve" (clear unlocked covers editor workflow)
+
+
+LATER
+-----
+[ ] Undo / Redo
+    - History stack of board states (and ideally locked flags)
+    - Persistent undo across sessions (Neovim-style undofile:
+      save undo history next to puzzle file or in a known cache dir,
+      reload when opening the same puzzle)
+[ ] Pencil marks / candidates (useful for designing puzzles)
+[ ] Optional general orchestrator: events.handle_input(&game)
+
+
+STRETCH (after solver + save/load)
+---------------------------------
+[ ] More themes
+    - Near-term: cycle with Space (or Shift+Space)
+    - Later: microui list of light/dark themes, radio/checkbox selection
+[ ] On-screen toolbar or microui menus (Save/Load/Solve, theme picker)
+[ ] Printable / shareable puzzle export
+[ ] WASM / Linux polish (after macOS is solid)
+
+
+NOTES
+-----
+- Coordinate convention: selected.x = row, selected.y = col
+- Locked cells = puzzle givens; Ctrl+Shift+C clears the rest
+- Prefer alphabetical order for struct fields and constant lists
+- Type the code to learn; ask for walkthroughs when stuck on algorithms

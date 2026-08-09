@@ -24,12 +24,12 @@ draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.G
 draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {
     // Draw the light cell lines 
     for i in 0..=9 {
-        thinckness  := f32(1)
+        thickness  := f32(1)
         color       := theme.line_thin
 
         // Thicker lines every 3 cells (the 3x3 box boarders)
         if i % 3 == 0 {
-            thinckness  = 3 
+            thickness  = 3 
             color       = theme.line_thick
         }
 
@@ -38,7 +38,7 @@ draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {
         rl.DrawLineEx(
             {x, f32(state.GRID_ORIGIN_Y)},
             {x, f32(state.GRID_ORIGIN_Y + state.GRID_SIZE)},
-            thinckness,
+            thickness,
             color,
         )
 
@@ -46,7 +46,7 @@ draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {
         y := f32(state.GRID_ORIGIN_Y + i * state.CELL_SIZE)
         rl.DrawLineEx({f32(state.GRID_ORIGIN_X), y},
             {f32(state.GRID_ORIGIN_X + state.GRID_SIZE), y},
-            thinckness,
+            thickness,
             color,
         )
     }
