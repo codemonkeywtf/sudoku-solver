@@ -1,62 +1,70 @@
 package main
 
-import rl "vendor:raylib"
+// ----- odin-imports ----- \\ 
 import "core:fmt"
 import "core:strings"
+import rl "vendor:raylib"
+
+// ----- sudoku-solver-imports ----- \\
+// import "events"
+import "fonts"
+// import "logic"
+// import "render"
+import "state"
+import "theme"
 import v "vecs"
 
 // init global variables
-exit_window_requested: bool
-exit_window: bool 
-is_dark := true
-last_move_time: f64 = 0
-is_first_move := true
-selected: v.V2     // V2 is Vec2 {0, 0}
-space_num := 0
-board: [9][9]int
-locked: [9][9]bool  // true = this cell cannot be changed 
-is_locked: bool = false 
+// exit_window_requeste: bool
+// exit_window: bool 
+// is_dark := true
+// last_move_time: f64 = 0
+// is_first_move := true
+// selected: v.V2     // V2 is Vec2 {0, 0}
+// space_num := 0
+// board: [9][9]int
+// locked: [9][9]bool  // true = this cell cannot be changed 
+// is_locked: bool = false 
 
 // ---------------------------------------------------------
 main :: proc() {
-    current_theme :: proc() -> Theme {
-        return is_dark ? dark_theme : light_theme
-    }
-    fmt.println(board)
-    rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 6")
+    game := state.game_init()
+    font := fonts.init()
+    rl.InitWindow(state.WINDOW_WIDTH, state.WINDOW_HEIGHT, "Sudoku Solver - Odin + Raylib 6")
     rl.SetExitKey(.KEY_NULL)
 
     // Load RobotoMono-Medium
-    fonts := Fonts{
-        regular = rl.LoadFont("assets/fonts/static/RobotoMono-Light.ttf"),
-        bold    = rl.LoadFont("assets/fonts/static/RobotoMono-SemiBold.ttf"),
-    }
-    defer {
-        rl.UnloadFont(fonts.regular)
-        rl.UnloadFont(fonts.bold)
-    }
-    rl.SetTextureFilter(fonts.regular.texture, .BILINEAR)
-    rl.SetTextureFilter(fonts.bold.texture, .BILINEAR)
+//    fonts := game.Fonts{
+//        regular = rl.LoadFont("assets/fonts/static/RobotoMono-Light.ttf"),
+//        bold    = rl.LoadFont("assets/fonts/static/RobotoMono-SemiBold.ttf"),
+//    }
+//    defer {
+//        rl.UnloadFont(fonts.regular)
+//        rl.UnloadFont(fonts.bold)
+//    }
+//    rl.SetTextureFilter(fonts.regular.texture, .BILINEAR)
+//    rl.SetTextureFilter(fonts.bold.texture, .BILINEAR)
 
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
 
-    for !exit_window {
+    for !game.exit_window {
+        //---------- to close or not to close ----------\\
         if rl.WindowShouldClose() || rl.IsKeyPressed(.ESCAPE) {
-            exit_window_requested = true
+            game.exit_window_requested = true
         }
 
-        if exit_window_requested {
+        if game.exit_window_requested {
             if rl.IsKeyPressed(.Y) {
-                exit_window = true
+                game.exit_window = true
             } else if rl.IsKeyPressed(.N) {
-                exit_window_requested = false
+                game.exit_window_requested = false
             }
         }
-        theme := current_theme()
+        theme := current_theme(state.Game)
 
         // ---------- event handlers ---------- 
-        handle_theme_toggle()
+        handle_theme_toggle(game)
         handle_mouse_click()
         handle_keys()
         handle_tab_navigation()
@@ -69,15 +77,19 @@ main :: proc() {
 
             rl.ClearBackground(theme.bg)
             draw_grid(theme, fonts)
-            draw_exit_window(theme, fonts.regular)
+            draw_exit_window(theme, fonts.regular, game)
 
         rl.EndDrawing()
     }
 }
 
-handle_theme_toggle :: proc() {
+current_theme :: proc(game: ^Game) -> Theme {
+    return game.is_dark ? theme.dark_theme : theme.light_theme
+}
+
+handle_theme_toggle :: proc(game: ^Game) {
     if rl.IsKeyPressed(.SPACE) {
-        is_dark = !is_dark
+        game.is_dark = !game.is_dark
     }
 }
 
@@ -283,8 +295,8 @@ temp_cstring :: proc (s: string)-> cstring {
     return strings.clone_to_cstring(s, context.temp_allocator)
 }
 
-draw_exit_window :: proc(theme: Theme, font: rl.Font) {
-    if !exit_window_requested do return
+draw_exit_window :: proc(theme: Theme, font: rl.Font, game: ^Game) {
+    if !game.exit_window_requested do return
 
     rl.DrawRectangle(20, 220, WINDOW_WIDTH -50, 100, theme.bg)
     rl.DrawTextEx(
@@ -297,7 +309,7 @@ draw_exit_window :: proc(theme: Theme, font: rl.Font) {
     rl.DrawRectangleLines(20,220,WINDOW_WIDTH - 50, 100, theme.line_thick)
 }
 
-draw_grid :: proc(theme: Theme, fonts: Fonts) {
+draw_grid :: proc(theme: ^Theme, fonts: ^Fonts) {
     // Draw the light cell lines
     for i in 0..=9 {
         thickness := f32(1)

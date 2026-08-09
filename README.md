@@ -1,21 +1,54 @@
-# Sudoku Solver (Odin + Raylib)
+# Sudoku Solver (Odin + Raylib 6)
 
-A learning project built with [Odin](https://odin-lang.org/) and [Raylib 6](https://www.raylib.com/).
+A clean, interactive Sudoku editor and solver written in [Odin](https://odin-lang.org/) using [Raylib 6](https://www.raylib.com/).
 
-## Goals
+This project is both a useful tool and a learning platform for idiomatic Odin, modular design, and game/app structure.
 
-- Interactive 9×9 Sudoku grid with keyboard + mouse navigation
-- Ability to enter and clear numbers
-- A working backtracking solver
-- "Unsolve" support so you can create and share puzzles
-- Clean, readable code as a learning exercise in Odin
+## Features
 
-## Current Status
+- Full 9×9 grid with clear 3×3 block borders
+- Light & dark themes (toggle with `Space`)
+- Mouse + keyboard navigation (arrows, WASD, hjkl)
+- Tab / Shift+Tab to jump between 3×3 blocks
+- Number entry (1-9) and clear (Backspace / Delete)
+- Conflict highlighting (row, column, **and** 3×3 box) in red
+- Lock / Unlock system (`Ctrl+Shift+L` toggles)
+  - Locked cells use bold font + outline
+  - `Ctrl+Shift+C` clears all unlocked cells
+- Exit confirmation dialog
+- Monospaced fonts (Roboto Mono Light + SemiBold)
 
-- Grid rendering with light/dark theme
-- Cell selection (mouse + arrows + hjkl + Tab block jumping)
-- Basic number input (still needs a persistent board)
-- Project structured with small packages (`vecs`, etc.)
+## Current Status (dev branch)
+
+The project is in the middle of a structural refactor:
+
+- Core data is being moved into a central `Game` struct
+- Input handling is being split into an `events` package
+- Drawing and logic will move into `render` and `logic` packages
+- The application still runs on the previous global-based code while the new structure is completed
+
+### Working
+- All gameplay features listed above
+- Theme system, fonts, conflict detection, locking
+
+### In progress
+- Migrating from globals → `Game` struct
+- Moving handlers into `src/events/`
+- Preparing `render/` and `logic/` packages
+
+## Controls
+
+| Input                    | Action                              |
+|--------------------------|-------------------------------------|
+| Mouse click              | Select cell                         |
+| Arrows / WASD / hjkl     | Move selection                      |
+| Tab / Shift+Tab          | Jump to next/previous 3×3 block     |
+| 1-9                      | Enter number                        |
+| Backspace / Delete       | Clear cell                          |
+| Space                    | Toggle light/dark theme             |
+| Ctrl+Shift+L             | Toggle lock on filled cells         |
+| Ctrl+Shift+C             | Clear all unlocked cells            |
+| Esc                      | Exit confirmation (Y/N)             |
 
 ## Building
 
@@ -23,26 +56,38 @@ A learning project built with [Odin](https://odin-lang.org/) and [Raylib 6](http
 odin run src
 ```
 
-## Controls (so far)
+## Project Structure (target)
 
-| Input              | Action                          |
-|--------------------|---------------------------------|
-| Mouse click        | Select cell                     |
-| Arrow keys / hjkl  | Move selection                  |
-| Tab / Shift+Tab    | Jump to next/previous 3×3 block |
-| 1-9                | Enter number (temporary)        |
-| Backspace / Delete | Clear cell (temporary)          |
-| Space              | Toggle light/dark theme         |
+```text
+src/
+├── main.odin           # entry point + main loop
+├── constants.odin
+├── state.odin          # Game struct + init
+├── theme.odin
+├── fonts.odin
+├── events/
+│   ├── events.odin     # orchestrator
+│   ├── keyboard.odin
+│   └── mouse.odin
+├── render/
+│   └── render.odin
+├── logic/
+│   ├── conflict.odin
+│   └── solver.odin     # future
+└── vecs/
+    └── vecs.odin
+```
 
 ## Roadmap
 
-1. Persistent board state (`[9][9]int`)
-2. Proper number drawing
-3. Solve button + backtracking solver
-4. Unsolve / restore original puzzle
-5. Optional undo stack
-6. Polish + keyboard shortcuts
+1. Finish migration to `Game` struct
+2. Complete `events` package
+3. Move drawing into `render`
+4. Move conflict checks into `logic`
+5. Save / Load puzzles
+6. Backtracking solver + Unsolve
+7. (Optional) Pencil marks, more themes, microui menus
 
----
+## License
 
-Learning project – code is intentionally kept simple and readable.
+This project is for learning and personal use. Fonts are under the OFL (see `assets/fonts/`).
