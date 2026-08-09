@@ -20,21 +20,17 @@ This project is both a useful tool and a learning platform for idiomatic Odin, m
 
 ## Current Status (dev branch)
 
-The project is in the middle of a structural refactor:
-
-- Core data is being moved into a central `Game` struct
-- Input handling is being split into an `events` package
-- Drawing and logic will move into `render` and `logic` packages
-- The application still runs on the previous global-based code while the new structure is completed
+Package refactor is complete. Feature parity with the pre-refactor app is restored.
 
 ### Working
 - All gameplay features listed above
-- Theme system, fonts, conflict detection, locking
+- `Game` state, `events` orchestrator, `render`, `helpers`, themes, fonts
 
-### In progress
-- Migrating from globals → `Game` struct
-- Moving handlers into `src/events/`
-- Preparing `render/` and `logic/` packages
+### Next
+- Save / Load puzzles
+- Backtracking solver (locked cells treated as givens)
+
+See `TODO` for the full checklist.
 
 ## Controls
 
@@ -53,40 +49,40 @@ The project is in the middle of a structural refactor:
 ## Building
 
 ```bash
-odin run src
+make run      # odin run . -collection:src=src
+make build    # produces ./sudoku-solver
 ```
 
-## Project Structure (target)
+Requires Odin with Raylib 6 and a collection-aware compiler (e.g. dev-2026-08+).
+
+## Project Structure
 
 ```text
-src/
-├── main.odin           # entry point + main loop
-├── constants.odin
-├── state.odin          # Game struct + init
-├── theme.odin
-├── fonts.odin
-├── events/
-│   ├── events.odin     # orchestrator
-│   ├── keyboard.odin
-│   └── mouse.odin
-├── render/
-│   └── render.odin
-├── logic/
-│   ├── conflict.odin
-│   └── solver.odin     # future
-└── vecs/
-    └── vecs.odin
+.
+├── main.odin              # entry: game.run()
+├── Makefile
+├── ols.json               # OLS collection: src
+├── TODO
+├── assets/fonts/...
+└── src/
+    ├── game/              # main loop
+    ├── state/             # Game struct, constants, init
+    ├── events/            # orchestrator + keyboard + mouse
+    ├── render/            # grid, numbers, exit dialog
+    ├── helpers/           # conflict check, temp_cstring, which_block
+    ├── fonts/
+    ├── theme/
+    ├── logic/             # solver placeholder
+    └── vecs/
 ```
 
 ## Roadmap
 
-1. Finish migration to `Game` struct
-2. Complete `events` package
-3. Move drawing into `render`
-4. Move conflict checks into `logic`
-5. Save / Load puzzles
-6. Backtracking solver + Unsolve
-7. (Optional) Pencil marks, more themes, microui menus
+1. Save / Load puzzles
+2. Backtracking solver
+3. Undo / Redo (including persistent undofile later)
+4. Pencil marks, more themes, microui menus (stretch)
+5. WASM / Linux polish
 
 ## License
 
