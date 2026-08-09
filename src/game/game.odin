@@ -1,18 +1,14 @@
 package game
 
 // {{{ odin-imports
-import "core:fmt"
-import "core:strings"
 import rl "vendor:raylib"
 // }}}
 // {{{ sudoku-solver-imports
 import "src:events"
-import mouse "src:events"
 import "src:fonts"
 import render "src:render"
 import "src:state"
 import "src:theme"
-import v "src:vecs"
 // }}}
 
 //---------- GAME ----------\\

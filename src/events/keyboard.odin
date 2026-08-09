@@ -1,6 +1,5 @@
 package events
 
-import "src:theme"
 import rl "vendor:raylib"
 import "src:state"
 

@@ -20,7 +20,7 @@ DONE
 CLEANUP (optional polish)
 -------------------------
 [ ] game.odin: drop unused imports (mouse alias, core:fmt, core:strings, vecs)
-[ ] keyboard.odin: drop unused import "src:theme" if still present
+[x] keyboard.odin: drop unused import "src:theme" if still present
 [ ] Merge dev → master when ready
 
 
