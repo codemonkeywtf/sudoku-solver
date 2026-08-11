@@ -5,6 +5,9 @@ ODIN 		= odin
 
 .PHONY: run build clean 
 
+test: 
+	$(ODIN) test src/logic $(COLLECTION) -define:ODIN_TEST_SHORT_LOGS=true
+
 run:
 	$(ODIN) run . $(COLLECTION)
 

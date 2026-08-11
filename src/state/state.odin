@@ -17,10 +17,10 @@ MOVE_INITIAL_DELAY  :: 0.28
 MOVE_REPEAT_RATE    :: 0.11
 WINDOW_HEIGHT       :: 620          // extra space below for buttons later
 WINDOW_WIDTH        :: 540
+SAVE_DIR            :: "puzzles/easy"
 
 Game :: struct {
     board:                  [9][9]int,
-//    dir:                    Direction,
     exit_window:            bool,
     exit_window_requested:  bool,
     is_dark:                bool,
@@ -29,7 +29,7 @@ Game :: struct {
     last_move_time:         f64,
     locked:                 [9][9]bool,
     selected:               v.V2,
-    // add more fields later as needed
+    solve_failed:           bool,
 }
 
 Direction :: enum {

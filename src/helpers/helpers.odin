@@ -18,6 +18,19 @@ which_block :: proc(game: ^state.Game) -> v.V2 {
     return block
 }
 
+// check  board for conflict
+has_board_conflict :: proc(game: ^state.Game) -> bool {
+    for r in 0..<9 {
+        for c in 0..<9 {
+            v := game.board[r][c]
+            if v != 0 && has_conflict(game, r, c, v) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
 // number conflict helper
 has_conflict :: proc(game: ^state.Game, row, col, value: int) -> bool {
     if value == 0 do return false

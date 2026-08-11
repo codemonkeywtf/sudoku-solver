@@ -1,7 +1,9 @@
 package events
 
+import "core:fmt"
 import rl "vendor:raylib"
 import "src:state"
+import "src:logic"
 
 //---------- TIMER EVENTS ----------\\
 
@@ -19,9 +21,10 @@ handle_keys :: proc(game: ^state.Game) {
 
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT)
+    alt := rl.IsKeyDown(.LEFT_ALT) || rl.IsKeyDown(.RIGHT_ALT)
 
     // don't move if lock/unlock modifiers 
-    if ctrl && shift {
+    if ctrl && shift || alt {
         return
     }
     
@@ -144,4 +147,32 @@ handle_get_number :: proc(game: ^state.Game) {
         digit = 0
     }
     game.board[game.selected.x][game.selected.y] = digit
+}
+
+// ALT + S Handle Solve 
+handle_solve_key :: proc(game: ^state.Game) {
+    if rl.IsKeyDown(.RIGHT_ALT) || rl.IsKeyDown(.LEFT_ALT) && rl.IsKeyPressed(.S) { 
+        _ = logic.solve(game)
+    }
+}
+
+handle_close_fail :: proc(game: ^state.Game) {
+    if game.solve_failed {
+        if rl.IsKeyPressed(.ENTER) && game.solve_failed {
+            game.solve_failed = false
+        }
+    }
+        return
+}
+
+handle_save_key :: proc(game: ^state.Game) {
+    ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
+    if ctrl && rl.IsKeyPressed(.S) {
+        path, ok := logic.save_puzzle(game)
+        if ok {
+            fmt.println("saved:", path)
+        } else {
+            fmt.println("save failed to:", path)
+        }
+    }
 }

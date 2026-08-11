@@ -21,6 +21,21 @@ draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.G
     rl.DrawRectangleLines(20, 220, state.WINDOW_WIDTH - 50, 100, theme.line_thick)
 }
 
+draw_fail_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.Game) {
+    if !game.solve_failed do return 
+
+    rl.DrawRectangle(20, 220, state.WINDOW_WIDTH - 50, 100, theme.bg)
+    rl.DrawTextEx(
+        font.bold,
+        "ERROR: Puzzle can not be solved press ENTER!",
+        {50.0, 260.0},
+        20.0,
+        1.0,
+        theme.error_color
+    )
+    rl.DrawRectangleLines(20,220, state.WINDOW_WIDTH -50, 100, theme.line_thick)
+}
+
 draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {
     // Draw the light cell lines 
     for i in 0..=9 {

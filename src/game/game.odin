@@ -49,6 +49,7 @@ run :: proc() {
 
             rl.ClearBackground(theme.bg)
             render.draw_grid(&theme, &font, &game)
+            render.draw_fail_window(&theme, &font, &game)
             render.draw_exit_window(&theme, &font, &game)
 
        rl.EndDrawing()
