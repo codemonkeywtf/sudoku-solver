@@ -15,16 +15,6 @@ Puzzle :: struct {
 puzzle :Puzzle
 
 load_puzzle :: proc(game: ^state.Game, path: string) -> bool {
-    /*
-       1. read file -> text -> lines 
-       2. if lines[0] is not "v1" -> false
-       3. find the index of "board"
-       4. next 9 lines -> parse_row -> game.board[row]
-       5. find the index of "locked"
-       6. next 9 lines -> parse_row -> turn 0/1 into bool -> game.locked[row]
-       7. return ture if everything succeeded
-    */
-    fmt.println("most logical")
     data, err := os.read_entire_file(path, context.allocator)
     if err != nil {
         return false
