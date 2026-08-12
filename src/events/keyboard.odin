@@ -24,7 +24,7 @@ handle_keys :: proc(game: ^state.Game) {
     alt := rl.IsKeyDown(.LEFT_ALT) || rl.IsKeyDown(.RIGHT_ALT)
 
     // don't move if lock/unlock modifiers 
-    if ctrl && shift || alt {
+    if ctrl && shift || alt || ctrl {
         return
     }
     
@@ -174,5 +174,13 @@ handle_save_key :: proc(game: ^state.Game) {
         } else {
             fmt.println("save failed to:", path)
         }
+    }
+}
+
+handle_open_key :: proc(game: ^state.Game) {
+    ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
+    if ctrl && rl.IsKeyPressed(.O) {
+        path := "./puzzles/easy/b57440bd0176d33f.sudoku"
+        logic.load_puzzle(game, path)
     }
 }

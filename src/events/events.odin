@@ -18,4 +18,5 @@ handle_input :: proc(game: ^state.Game) {
     handle_solve_key(game)
     handle_close_fail(game)
     handle_save_key(game)
+    handle_open_key(game)
 }

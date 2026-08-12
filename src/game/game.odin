@@ -24,13 +24,11 @@ run :: proc() {
     rl.SetTargetFPS(60)
     defer rl.CloseWindow()
 
-    path := "./puzzles/easy/b57440bd0176d33f.sudoku"
     game := state.game_init()
     font := fonts.init()
     defer fonts.destroy(&font)
 
     fmt.println("I am groot")
-    logic.load_puzzle(&game, path)
     for !game.exit_window {
         //---------- to close or not to close ----------\\
         if rl.WindowShouldClose() || rl.IsKeyPressed(.ESCAPE) {
