@@ -7,11 +7,11 @@ This project is both a useful tool and a learning platform for idiomatic Odin, m
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/dark.png" width="260" alt="Dark theme" />
-  <img src="assets/screenshots/light.png" width="260" alt="Light theme" />
-  <img src="assets/screenshots/exit-dialog.png" width="260" alt="Exit dialog" />
-  <img src="assets/screenshots/unsolvable.png" width="260" alt="Unsolvable puzzle" />
-  <img src="assets/screenshots/solved.png" width="260" alt="Solved board" />
+  <img style="padding: 10px;" src="assets/screenshots/dark.png" width="260" alt="Dark theme" />
+  <img style="padding: 10px;" src="assets/screenshots/light.png" width="260" alt="Light theme" />
+  <img style="padding: 10px;" src="assets/screenshots/exit-dialog.png" width="260" alt="Exit dialog" />
+  <img style="padding: 10px;" src="assets/screenshots/unsolvable.png" width="260" alt="Unsolvable puzzle" />
+  <img style="padding: 10px;" src="assets/screenshots/solved.png" width="260" alt="Solved board" />
 </p>
 
 ## Features
