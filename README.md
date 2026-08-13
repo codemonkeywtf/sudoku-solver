@@ -4,6 +4,23 @@ A clean, interactive Sudoku editor and solver written in [Odin](https://odin-lan
 
 This project is both a useful tool and a learning platform for idiomatic Odin, modular design, and game/app structure.
 
+## Screenshots
+
+### Dark theme
+![Dark theme](assets/screenshots/dark.png)
+
+### Light theme
+![Light theme](assets/screenshots/light.png)
+
+### Exit confirmation
+![Exit dialog](assets/screenshots/exit-dialog.png)
+
+### Unsolvable puzzle
+![Unsolvable](assets/screenshots/unsolvable.png)
+
+### Solved board (locked cells outlined)
+![Solved](assets/screenshots/solved.png)
+
 ## Features
 
 - Full 9×9 grid with clear 3×3 block borders
