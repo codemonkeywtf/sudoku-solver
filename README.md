@@ -6,20 +6,13 @@ This project is both a useful tool and a learning platform for idiomatic Odin, m
 
 ## Screenshots
 
-### Dark theme
-![Dark theme](assets/screenshots/dark.png)
-
-### Light theme
-![Light theme](assets/screenshots/light.png)
-
-### Exit confirmation
-![Exit dialog](assets/screenshots/exit-dialog.png)
-
-### Unsolvable puzzle
-![Unsolvable](assets/screenshots/unsolvable.png)
-
-### Solved board (locked cells outlined)
-![Solved](assets/screenshots/solved.png)
+<p align="center">
+  <img src="assets/screenshots/dark.png" width="260" alt="Dark theme" />
+  <img src="assets/screenshots/light.png" width="260" alt="Light theme" />
+  <img src="assets/screenshots/exit-dialog.png" width="260" alt="Exit dialog" />
+  <img src="assets/screenshots/unsolvable.png" width="260" alt="Unsolvable puzzle" />
+  <img src="assets/screenshots/solved.png" width="260" alt="Solved board" />
+</p>
 
 ## Features
 
