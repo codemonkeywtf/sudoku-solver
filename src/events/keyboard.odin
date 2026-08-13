@@ -180,6 +180,18 @@ handle_save_key :: proc(game: ^state.Game) {
 handle_open_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     if ctrl && rl.IsKeyPressed(.O) {
+        names, ok := logic.list_puzzle_names({"puzzles","easy"})
+        if !ok {
+            fmt.eprintfln("could not open: %v", ok)
+        } else {
+            defer {
+                for n in names do delete(n)
+                delete(names)
+            }
+            for n in names {
+                fmt.println(n)
+            }
+        }
         path := "./puzzles/easy/b57440bd0176d33f.sudoku"
         logic.load_puzzle(game, path)
     }

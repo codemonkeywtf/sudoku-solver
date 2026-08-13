@@ -1,18 +1,25 @@
-# Makefile for Sudoki Solver (Odin)
+# Sudoku Solver – Odin + Raylib
 
-COLLECTION 	= -collection:src=src
-ODIN 		= odin
+ODIN       = odin
+COLLECTION = -collection:src=src
 
-.PHONY: run build clean 
+.PHONY: dirs run build test clean distclean
 
-test: 
-	$(ODIN) test src/logic $(COLLECTION) -define:ODIN_TEST_SHORT_LOGS=true
+dirs:
+	mkdir -p puzzles/easy
 
-run:
+run: dirs
 	$(ODIN) run . $(COLLECTION)
 
-build: 
+build: dirs
 	$(ODIN) build . $(COLLECTION) -out:sudoku-solver
+
+test:
+	$(ODIN) test src/logic $(COLLECTION) -define:ODIN_TEST_SHORT_LOGS=true
 
 clean:
 	rm -f sudoku-solver
+
+distclean:
+	rm -f sudoku-solver
+	rm -rf puzzles
