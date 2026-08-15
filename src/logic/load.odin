@@ -1,6 +1,5 @@
 package logic
 
-import "core:fmt"
 import "core:os"
 import "core:strconv"
 import "core:strings"
@@ -23,12 +22,9 @@ load_puzzle :: proc(game: ^state.Game, path: string) -> bool {
 
     text := string(data)
     lines := strings.split_lines(text)
-    fmt.println(len(lines))
-    if len(lines) == 0 {
-        return false
-    }
+    defer delete(lines)
 
-    if lines[0] != "v1" {
+    if len(lines) == 0 || lines[0] != "v1" {
         return false
     }
 
@@ -38,8 +34,8 @@ load_puzzle :: proc(game: ^state.Game, path: string) -> bool {
     }
 
     for r in 0..<9 {
-        row, ok := parse_row((lines[board_at + 1 + r]))
-        if !ok {
+        row, row_ok := parse_row((lines[board_at + 1 + r]))
+        if !row_ok {
             return false
         }
         game.board[r] = row
@@ -51,8 +47,8 @@ load_puzzle :: proc(game: ^state.Game, path: string) -> bool {
     }
 
     for r in 0..<9 {
-        row, ok := parse_row((lines[locked_at + 1 + r]))
-        if !ok {
+        row, row_ok := parse_row((lines[locked_at + 1 + r]))
+        if !row_ok {
             return false
         }
         for c in 0..<9 {

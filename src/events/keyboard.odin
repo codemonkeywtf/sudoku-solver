@@ -1,6 +1,5 @@
 package events
 
-import "core:fmt"
 import rl "vendor:raylib"
 import "src:state"
 import "src:logic"
@@ -167,32 +166,16 @@ handle_close_fail :: proc(game: ^state.Game) {
 
 handle_save_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
-    if ctrl && rl.IsKeyPressed(.S) {
-        path, ok := logic.save_puzzle(game)
-        if ok {
-            fmt.println("saved:", path)
-        } else {
-            fmt.println("save failed to:", path)
-        }
+    shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
+    if ctrl && !shift && rl.IsKeyPressed(.S) {
+        logic.handle_file_action(game, state.FIle_Action.Save)
     }
 }
 
 handle_open_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
-    if ctrl && rl.IsKeyPressed(.O) {
-        names, ok := logic.list_puzzle_names({"puzzles","easy"})
-        if !ok {
-            fmt.eprintfln("could not open: %v", ok)
-        } else {
-            defer {
-                for n in names do delete(n)
-                delete(names)
-            }
-            for n in names {
-                fmt.println(n)
-            }
-        }
-        path := "./puzzles/easy/b57440bd0176d33f.sudoku"
-        logic.load_puzzle(game, path)
+    shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
+    if ctrl && !shift && rl.IsKeyPressed(.O) {
+        logic.handle_file_action(game, state.FIle_Action.Load)
     }
 }

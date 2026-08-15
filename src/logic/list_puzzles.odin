@@ -9,22 +9,9 @@ list_puzzle_names :: proc(dir: []string) -> (names: []string, ok: bool) {
     result: [dynamic]string
     read_err: os.Error
     defer os.file_info_slice_delete(fis, context.allocator)
-
-    cwd, err := os.get_working_directory(context.allocator)
-    if err != nil {
-        fmt.eprintfln("could not get current working directory: %v", err)
-        return {}, false
-    }
-    defer delete(cwd)
-
-    parts := make([dynamic]string, 0, 1 + len(dir))
-    defer delete(parts)
-    append(&parts, cwd)
-    append(&parts, ..dir)
-    puzzle_dir, join_err := os.join_path(parts[:], context.allocator)
     
-    if join_err != nil {
-        fmt.eprintfln("join_path failed: %v", join_err)
+    puzzle_dir, dir_ok := join_app_path(dir)
+    if !dir_ok {
         return {}, false
     }
     defer delete(puzzle_dir)
@@ -35,7 +22,6 @@ list_puzzle_names :: proc(dir: []string) -> (names: []string, ok: bool) {
         return {}, false
 	}
 	defer os.close(f)
-
 
 	fis, read_err = os.read_dir(f, -1, context.allocator) // -1 reads all file infos
 	if read_err != nil {

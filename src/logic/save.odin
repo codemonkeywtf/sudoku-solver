@@ -6,7 +6,7 @@ import "core:strings"
 
 import "src:state"
 
-save_dir := state.SAVE_DIR
+save_dir := state.SAVE_DIR_PARTS
 
 // Fast FNV-1a style mix of board + locked -> hex name
 board_hash :: proc(game: ^state.Game) -> string {
@@ -21,23 +21,45 @@ board_hash :: proc(game: ^state.Game) -> string {
     return fmt.tprintf("%016x", h)
 }
 
-save_path :: proc(game: ^state.Game) -> string {
-    name := board_hash(game)
-    return fmt.tprintf("%s/%s.sudoku", save_dir, name)
-}
 
-ensure_save_dir :: proc() -> bool {
-    // creates puzzles/ and puzzles/easy/ if needed 
-    err := os.make_directory_all(save_dir)
+ensure_save_dir :: proc(dir_parts: []string) -> bool {
+    dir, ok := join_app_path(dir_parts)
+    if !ok {
+        return false
+    }
+    defer delete(dir)
+
+    err := os.make_directory_all(dir)
     return err == nil || err == os.ERROR_NONE || err == .Exist
 }
 
-save_puzzle :: proc(game: ^state.Game) -> (path: string, ok: bool) {
-    if !ensure_save_dir() {
+save_path :: proc(
+    game: ^state.Game,
+    dir_parts: []string = state.SAVE_DIR_PARTS,
+) -> (path: string, ok: bool) {
+    dir, dir_ok := join_app_path(dir_parts)
+    if !dir_ok {
+        return "", false
+    }
+    defer delete(dir)
+
+    name := board_hash(game)
+    path = fmt.tprintf("%s/%s.sudoku", dir, name)
+    return path,true
+}
+
+save_puzzle :: proc(
+    game: ^state.Game,
+    dir_parts: []string = state.SAVE_DIR_PARTS,
+    ) -> (path: string, ok: bool) {
+    if !ensure_save_dir(dir_parts) {
         return "", false
     }
 
-    path = save_path(game)
+    _path, path_ok := save_path(game, dir_parts)
+    if !path_ok {
+        return "", false
+    }
     
     b: strings.Builder 
     strings.builder_init(&b)
@@ -67,9 +89,9 @@ save_puzzle :: proc(game: ^state.Game) -> (path: string, ok: bool) {
     }
 
     data := strings.to_string(b)
-     err := os.write_entire_file(path, data)
+     err := os.write_entire_file(_path, data)
      if err != nil {
-         return path, false
+         return _path, false
      }
-    return path, true
+    return _path, true
 }

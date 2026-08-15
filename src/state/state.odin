@@ -17,7 +17,7 @@ MOVE_INITIAL_DELAY  :: 0.28
 MOVE_REPEAT_RATE    :: 0.11
 WINDOW_HEIGHT       :: 620          // extra space below for buttons later
 WINDOW_WIDTH        :: 540
-SAVE_DIR            :: "puzzles/easy"
+SAVE_DIR_PARTS      :: []string{"puzzles", "easy"}
 
 Game :: struct {
     board:                  [9][9]int,
@@ -38,6 +38,11 @@ Direction :: enum {
     Right,
     Up,
     Down,
+}
+
+FIle_Action :: enum {
+    Load,
+    Save,
 }
 
 // init global variables
