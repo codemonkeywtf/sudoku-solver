@@ -70,6 +70,7 @@ find_line :: proc(lines: []string, target: string) -> int {
 
 parse_row :: proc(line: string) -> (row: [9]int, ok: bool) {
     parts := strings.fields(line)
+    defer delete(parts)
     if len(parts) != 9 {
         return {}, false
     }
