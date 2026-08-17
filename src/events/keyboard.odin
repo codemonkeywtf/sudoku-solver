@@ -155,10 +155,12 @@ handle_solve_key :: proc(game: ^state.Game) {
     }
 }
 
-handle_close_fail :: proc(game: ^state.Game) {
-    if game.solve_failed {
-        if rl.IsKeyPressed(.ENTER) && game.solve_failed {
+handle_fail_all :: proc(game: ^state.Game) {
+    if game.solve_failed || game.load_failed || game.save_failed {
+        if rl.IsKeyPressed(.ENTER) {
             game.solve_failed = false
+            game.load_failed = false
+            game.save_failed = false
         }
     }
         return
@@ -168,7 +170,7 @@ handle_save_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
     if ctrl && !shift && rl.IsKeyPressed(.S) {
-        logic.handle_file_action(game, state.FIle_Action.Save)
+        logic.handle_file_action(game, state.File_Action.Save)
     }
 }
 
@@ -176,6 +178,6 @@ handle_open_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
     if ctrl && !shift && rl.IsKeyPressed(.O) {
-        logic.handle_file_action(game, state.FIle_Action.Load)
+        logic.handle_file_action(game, state.File_Action.Load)
     }
 }

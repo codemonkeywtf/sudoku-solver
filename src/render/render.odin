@@ -10,7 +10,7 @@ import "src:theme"
 draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.Game) {
     if !game.exit_window_requested do return
 
-    rl.DrawRectangle(20, 220, state.WINDOW_WIDTH -50, 100, theme.bg)
+    rl.DrawRectangleRec(state.MSG_BOX_RECT, theme.bg)
     rl.DrawTextEx(
         font.regular,
         "Are you sure you want to exit program? [Y/N]?",
@@ -18,22 +18,23 @@ draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.G
         20.0,
         1.0,
         theme.font_color)
-    rl.DrawRectangleLines(20, 220, state.WINDOW_WIDTH - 50, 100, theme.line_thick)
+    rl.DrawRectangleLinesEx(state.MSG_BOX_OUTLINE, 2.0, theme.line_thick)
 }
 
 draw_fail_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.Game) {
-    if !game.solve_failed do return 
-
-    rl.DrawRectangle(20, 220, state.WINDOW_WIDTH - 50, 100, theme.bg)
+    if !(game.solve_failed || game.load_failed || game.save_failed) {
+        return
+    } 
+    rl.DrawRectangleRec(state.MSG_BOX_RECT, theme.bg)
     rl.DrawTextEx(
         font.bold,
-        "ERROR: Puzzle can not be solved press ENTER!",
+        helper.msg_cstring(game.game_msg),
         {50.0, 260.0},
         20.0,
         1.0,
         theme.error_color
     )
-    rl.DrawRectangleLines(20,220, state.WINDOW_WIDTH -50, 100, theme.line_thick)
+    rl.DrawRectangleLinesEx(state.MSG_BOX_OUTLINE, 2.0, theme.line_thick)
 }
 
 draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {

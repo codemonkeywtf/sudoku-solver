@@ -4,8 +4,8 @@ import "src:state"
 //---------- ORCHESTRATOR ----------\\
 
 handle_input :: proc(game: ^state.Game) {
-    if game.solve_failed {
-        handle_close_fail(game)
+    if game.solve_failed || game.load_failed || game.save_failed {
+        handle_fail_all(game)
         return
     }
 
@@ -16,7 +16,7 @@ handle_input :: proc(game: ^state.Game) {
     handle_get_number(game) 
     handle_mouse_click(game)
     handle_solve_key(game)
-    handle_close_fail(game)
+    // handle_fail_all(game)
     handle_save_key(game)
     handle_open_key(game)
 }

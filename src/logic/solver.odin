@@ -18,6 +18,7 @@ find_empty :: proc(game: ^state.Game) -> (row, col: int, ok: bool) {
 solve :: proc(game: ^state.Game) -> bool {
     if helpers.has_board_conflict(game) {
         game.solve_failed = true
+        game.game_msg = "ERROR: Puzzle can not be solved press ENTER!"
         return false
     }
     return solve_recursive(game)

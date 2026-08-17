@@ -1,5 +1,6 @@
 package state
 
+import rl "vendor:raylib"
 import v "src:vecs"
 
 // ------------------------------------------------------------
@@ -17,6 +18,18 @@ MOVE_INITIAL_DELAY  :: 0.28
 MOVE_REPEAT_RATE    :: 0.11
 WINDOW_HEIGHT       :: 620          // extra space below for buttons later
 WINDOW_WIDTH        :: 540
+MSG_BOX_RECT        :: rl.Rectangle {
+                        20,
+                        220,
+                        f32(WINDOW_WIDTH - 50),
+                        100,
+}
+MSG_BOX_OUTLINE     :: rl.Rectangle {
+                        20,
+                        220,
+                        WINDOW_WIDTH - 50,
+                        100,
+}
 SAVE_DIR_PARTS      :: []string{"puzzles", "easy"}
 
 Game :: struct {
@@ -30,6 +43,9 @@ Game :: struct {
     locked:                 [9][9]bool,
     selected:               v.V2,
     solve_failed:           bool,
+    save_failed:            bool,
+    load_failed:            bool,
+    game_msg:               string,
 }
 
 Direction :: enum {
@@ -40,7 +56,7 @@ Direction :: enum {
     Down,
 }
 
-FIle_Action :: enum {
+File_Action :: enum {
     Load,
     Save,
 }

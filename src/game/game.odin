@@ -28,10 +28,9 @@ run :: proc() {
     font := fonts.init()
     defer fonts.destroy(&font)
 
-    fmt.println("I am groot")
     for !game.exit_window {
         //---------- to close or not to close ----------\\
-        if rl.WindowShouldClose() || rl.IsKeyPressed(.ESCAPE) {
+        if rl.WindowShouldClose() || rl.IsKeyPressed(.Q) {
             game.exit_window_requested = true 
         }
 

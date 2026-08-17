@@ -9,6 +9,10 @@ temp_cstring :: proc (val: int) -> cstring {
     return strings.clone_to_cstring((fmt.tprintf("%d", val)), context.temp_allocator)
 }
 
+msg_cstring :: proc(s: string) -> cstring {
+    return strings.clone_to_cstring((fmt.tprintf("%s", s)), context.temp_allocator)
+}
+
 which_block :: proc(game: ^state.Game) -> v.V2 {
     // get current block 
     block_row := game.selected.x / 3

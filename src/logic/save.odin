@@ -21,18 +21,6 @@ board_hash :: proc(game: ^state.Game) -> string {
     return fmt.tprintf("%016x", h)
 }
 
-
-ensure_save_dir :: proc(dir_parts: []string) -> bool {
-    dir, ok := join_app_path(dir_parts)
-    if !ok {
-        return false
-    }
-    defer delete(dir)
-
-    err := os.make_directory_all(dir)
-    return err == nil || err == os.ERROR_NONE || err == .Exist
-}
-
 save_path :: proc(
     game: ^state.Game,
     dir_parts: []string = state.SAVE_DIR_PARTS,
@@ -52,12 +40,9 @@ save_puzzle :: proc(
     game: ^state.Game,
     dir_parts: []string = state.SAVE_DIR_PARTS,
     ) -> (path: string, ok: bool) {
-    if !ensure_save_dir(dir_parts) {
-        return "", false
-    }
 
-    _path, path_ok := save_path(game, dir_parts)
-    if !path_ok {
+    path, ok = save_path(game, dir_parts)
+    if ok {
         return "", false
     }
     
@@ -89,9 +74,9 @@ save_puzzle :: proc(
     }
 
     data := strings.to_string(b)
-     err := os.write_entire_file(_path, data)
+     err := os.write_entire_file(path, data)
      if err != nil {
-         return _path, false
+         return path, false
      }
-    return _path, true
+    return path, true
 }
