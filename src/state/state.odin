@@ -32,7 +32,14 @@ MSG_BOX_OUTLINE     :: rl.Rectangle {
 }
 SAVE_DIR_PARTS      :: []string{"puzzles", "easy"}
 
+App_Phase :: enum {
+    Playing,
+    Confirm_Quit,
+    Fail_Modal,
+}
+
 Game :: struct {
+    phase:              App_Phase,
     board:                  [9][9]int,
     exit_window:            bool,
     exit_window_requested:  bool,

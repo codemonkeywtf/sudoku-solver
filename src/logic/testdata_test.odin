@@ -3,6 +3,7 @@ package logic
 import "core:fmt"
 import "core:testing"
 
+import "src:logic"
 import "src:state"
 
 TESTDATA_PARTS :: []string{"testdata"}

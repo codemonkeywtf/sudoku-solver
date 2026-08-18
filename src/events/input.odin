@@ -1,20 +1,55 @@
 package events
 
 import rl "vendor:raylib"
-import "src:state"
+
 import "src:logic"
+import "src:state"
 
-//---------- TIMER EVENTS ----------\\
+//---------- ORCHESTRATOR ----------\\
+handle_input :: proc(game: ^state.Game) {
+    //---------- Handle Game Phase ----------\\
+    switch game.phase {
+    case .Confirm_Quit:
+        if rl.IsKeyPressed(.Y) {
+            game.exit_window = true
+        } else if rl.IsKeyPressed(.N) {
+            game.phase = .Playing
+        }
+        return
 
+    case .Fail_Modal:
+        if rl.IsKeyPressed(.ENTER) || rl.IsKeyPressed(.KP_ENTER) {
+            game.solve_failed = false
+            game.load_failed  = false
+            game.save_failed  = false
+            game.game_msg     = ""
+            game.phase        = .Playing
+        }
+        return
 
+    case .Playing:
+
+    }
+
+    handle_theme_toggle(game)
+    handle_keys(game)
+    handle_tab_navigation(game)
+    handle_lock_keys(game)
+    handle_get_number(game) 
+    handle_mouse_click(game)
+    handle_solve_key(game)
+    handle_save_key(game)
+    handle_open_key(game)
+}
 
 //---------- KEYBOARD EVENTS ----------\\ 
 handle_theme_toggle :: proc(game: ^state.Game) {
     if rl.IsKeyPressed(.SPACE) {
         game.is_dark = !game.is_dark
     }
-}
+} 
 
+//---------- Handle Keys ----------\\
 handle_keys :: proc(game: ^state.Game) {
     dir := state.Direction.None
 
@@ -64,8 +99,9 @@ handle_keys :: proc(game: ^state.Game) {
     }
 
     game.last_move_time = now
-}
+} 
 
+//---------- Handle Tab Navigation ----------\\
 handle_tab_navigation :: proc(game: ^state.Game) {
     block: [2]int = {game.selected.x / 3, game.selected.y / 3}
     
@@ -100,9 +136,9 @@ handle_tab_navigation :: proc(game: ^state.Game) {
         game.selected.y = block[1] * 3
     }
         
-}
+} 
 
-// lock the cells, make them immutable
+//---------- Lock Cells, make immutable ----------\\
 handle_lock_keys :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT)
@@ -131,8 +167,9 @@ handle_lock_keys :: proc(game: ^state.Game) {
             }
         }
     }
-}
+} 
 
+//---------- Handle Get Number ----------\\
 handle_get_number :: proc(game: ^state.Game) {
     if game.locked[game.selected.x][game.selected.y] {
         return
@@ -148,13 +185,14 @@ handle_get_number :: proc(game: ^state.Game) {
     game.board[game.selected.x][game.selected.y] = digit
 }
 
-// ALT + S Handle Solve 
+//---------- Handle Solve, ALT + S ----------\\ 
 handle_solve_key :: proc(game: ^state.Game) {
     if rl.IsKeyDown(.RIGHT_ALT) || rl.IsKeyDown(.LEFT_ALT) && rl.IsKeyPressed(.S) { 
         _ = logic.solve(game)
     }
 }
 
+//---------- Handle Fail All ----------\\
 handle_fail_all :: proc(game: ^state.Game) {
     if game.solve_failed || game.load_failed || game.save_failed {
         if rl.IsKeyPressed(.ENTER) {
@@ -166,6 +204,7 @@ handle_fail_all :: proc(game: ^state.Game) {
         return
 }
 
+//---------- Handle Save Key, CTRL + S ----------\\
 handle_save_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
@@ -174,10 +213,28 @@ handle_save_key :: proc(game: ^state.Game) {
     }
 }
 
+//---------- Handle Open Key, CTRL + O
 handle_open_key :: proc(game: ^state.Game) {
     ctrl := rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)
     shift := rl.IsKeyPressed(.LEFT_SHIFT) || rl.IsKeyPressed(.RIGHT_SHIFT)
     if ctrl && !shift && rl.IsKeyPressed(.O) {
         logic.handle_file_action(game, state.File_Action.Load)
+    }
+}
+
+//---------- MOUSE EVENTS ----------\\
+handle_mouse_click :: proc(game: ^state.Game) {
+    if rl.IsMouseButtonPressed(.LEFT) {
+        mouse := rl.GetMousePosition()
+
+        // Convert mouse position into grid coords 
+        row := int(mouse.x - f32(state.GRID_ORIGIN_X)) / state.CELL_SIZE
+        col := int(mouse.y - f32(state.GRID_ORIGIN_Y)) / state.CELL_SIZE
+
+        // only accept clicks inside the grid 
+        if row >= 0 && row < 9 && col >= 0 && col < 9 {
+            game.selected.x = row
+            game.selected.y = col
+        }
     }
 }

@@ -15,15 +15,18 @@ find_empty :: proc(game: ^state.Game) -> (row, col: int, ok: bool) {
     return 0,0, false
 }
 
+//---------- SOLVE ----------\\
 solve :: proc(game: ^state.Game) -> bool {
     if helpers.has_board_conflict(game) {
         game.solve_failed = true
         game.game_msg = "ERROR: Puzzle can not be solved press ENTER!"
+        game.phase = .Fail_Modal
         return false
     }
     return solve_recursive(game)
-}
+}//_
 
+//---------- Solver recursive backtracking ----------\\
 solve_recursive :: proc(game: ^state.Game) -> bool {
     row, col, found := find_empty(game)
     if !found {
@@ -45,4 +48,4 @@ solve_recursive :: proc(game: ^state.Game) -> bool {
     }
 
     return false
-}
+}//_
