@@ -29,6 +29,7 @@ run :: proc() {
     font := fonts.init()
     defer fonts.destroy(&font)
 
+    //----------  game loop ----------\\
     for !game.exit_window {
         //---------- to close or not to close ----------\\
         if rl.WindowShouldClose() || rl.IsKeyPressed(.Q) {
@@ -43,13 +44,10 @@ run :: proc() {
             } else if rl.IsKeyPressed(.N) {
                 game.phase = .Playing
             }
-        }
+        }//_
         theme :=  game.is_dark ? theme.dark_theme : theme.light_theme
-
-        //---------- event handlers ----------\\
         events.handle_input(&game)
 
-        //---------- DRAW----------\\
         rl.BeginDrawing()
 
             rl.ClearBackground(theme.bg)
@@ -59,6 +57,6 @@ run :: proc() {
             render.draw_fail_window(&theme, &font, &game)
             render.draw_exit_window(&theme, &font, &game)
 
-       rl.EndDrawing()
+       rl.EndDrawing() //_
     }
 }

@@ -29,7 +29,7 @@ handle_input :: proc(game: ^state.Game) {
 
     case .Playing:
 
-    }
+    }//_
 
     handle_theme_toggle(game)
     handle_keys(game)
@@ -40,14 +40,14 @@ handle_input :: proc(game: ^state.Game) {
     handle_solve_key(game)
     handle_save_key(game)
     handle_open_key(game)
-}
+}//_
 
 //---------- KEYBOARD EVENTS ----------\\ 
 handle_theme_toggle :: proc(game: ^state.Game) {
     if rl.IsKeyPressed(.SPACE) {
         game.is_dark = !game.is_dark
     }
-} 
+}//_ 
 
 //---------- Handle Keys ----------\\
 handle_keys :: proc(game: ^state.Game) {
@@ -99,7 +99,7 @@ handle_keys :: proc(game: ^state.Game) {
     }
 
     game.last_move_time = now
-} 
+}//_ 
 
 //---------- Handle Tab Navigation ----------\\
 handle_tab_navigation :: proc(game: ^state.Game) {
@@ -136,7 +136,7 @@ handle_tab_navigation :: proc(game: ^state.Game) {
         game.selected.y = block[1] * 3
     }
         
-} 
+}//_
 
 //---------- Lock Cells, make immutable ----------\\
 handle_lock_keys :: proc(game: ^state.Game) {
@@ -167,7 +167,7 @@ handle_lock_keys :: proc(game: ^state.Game) {
             }
         }
     }
-} 
+}//_ 
 
 //---------- Handle Get Number ----------\\
 handle_get_number :: proc(game: ^state.Game) {
@@ -183,14 +183,15 @@ handle_get_number :: proc(game: ^state.Game) {
         digit = 0
     }
     game.board[game.selected.x][game.selected.y] = digit
-}
+}//_
 
 //---------- Handle Solve, ALT + S ----------\\ 
 handle_solve_key :: proc(game: ^state.Game) {
-    if rl.IsKeyDown(.RIGHT_ALT) || rl.IsKeyDown(.LEFT_ALT) && rl.IsKeyPressed(.S) { 
+    alt := rl.IsKeyDown(.LEFT_ALT) || rl.IsKeyDown(.RIGHT_ALT)
+    if alt && rl.IsKeyPressed(.S) { 
         _ = logic.solve(game)
     }
-}
+}//_
 
 //---------- Handle Fail All ----------\\
 handle_fail_all :: proc(game: ^state.Game) {
@@ -202,7 +203,7 @@ handle_fail_all :: proc(game: ^state.Game) {
         }
     }
         return
-}
+}//_
 
 //---------- Handle Save Key, CTRL + S ----------\\
 handle_save_key :: proc(game: ^state.Game) {
@@ -211,7 +212,7 @@ handle_save_key :: proc(game: ^state.Game) {
     if ctrl && !shift && rl.IsKeyPressed(.S) {
         logic.handle_file_action(game, state.File_Action.Save)
     }
-}
+}//_
 
 //---------- Handle Open Key, CTRL + O
 handle_open_key :: proc(game: ^state.Game) {
@@ -220,7 +221,7 @@ handle_open_key :: proc(game: ^state.Game) {
     if ctrl && !shift && rl.IsKeyPressed(.O) {
         logic.handle_file_action(game, state.File_Action.Load)
     }
-}
+}//_
 
 //---------- MOUSE EVENTS ----------\\
 handle_mouse_click :: proc(game: ^state.Game) {
@@ -237,4 +238,4 @@ handle_mouse_click :: proc(game: ^state.Game) {
             game.selected.y = col
         }
     }
-}
+}//_
