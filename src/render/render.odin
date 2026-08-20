@@ -1,14 +1,13 @@
 package render
 
-import "core:fmt"
-import "src:fonts"
-import helper "src:helpers"
-import "src:state"
-import "src:theme"
 import rl "vendor:raylib"
+import "core:fmt"
+
+import helper "src:helpers"
+import "src:game/fonts"
 
 //---------- render exit modal ----------\\
-draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.Game) {
+draw_exit_window :: proc(game: ^game.Game) {
 	if game.phase == .Playing do return
 
 	rl.DrawRectangleRec(state.MSG_BOX_RECT, theme.bg)
@@ -24,7 +23,7 @@ draw_exit_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.G
 } //_
 
 //------ render fail modal ----------\\
-draw_fail_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.Game) {
+draw_fail_window :: proc(game: ^game.Game) {
 	if game.phase == .Playing do return
 
 	if !(game.solve_failed || game.load_failed || game.save_failed) {
@@ -32,18 +31,18 @@ draw_fail_window :: proc(theme: ^theme.Theme, font: ^fonts.Fonts, game: ^state.G
 	}
 	rl.DrawRectangleRec(state.MSG_BOX_RECT, theme.bg)
 	rl.DrawTextEx(
-		font.bold,
+		game.font.bold,
 		helper.msg_cstring(game.game_msg),
 		{50.0, 260.0},
 		20.0,
 		1.0,
-		theme.error_color,
+		game.theme.error_color,
 	)
 	rl.DrawRectangleLinesEx(state.MSG_BOX_OUTLINE, 2.0, theme.line_thick)
 } //_
 
 //---------- render grid ----------\\
-draw_grid :: proc(theme: ^theme.Theme, fonts: ^fonts.Fonts, game: ^state.Game) {
+draw_grid :: proc(game: ^game.Game) {
 	//---  Draw the light cell lines ---\\
 	for i in 0 ..= 9 {
 		thickness := f32(1)

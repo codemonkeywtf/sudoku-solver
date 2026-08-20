@@ -3,15 +3,15 @@ package events
 import rl "vendor:raylib"
 
 import "src:logic"
-import "src:state"
+import "src:game"
 
 //---------- ORCHESTRATOR ----------\\
-handle_input :: proc(game: ^state.Game) {
+handle_input :: proc(game: game.Game) {
     //---------- Handle Game Phase ----------\\
     switch game.phase {
     case .Confirm_Quit:
         if rl.IsKeyPressed(.Y) {
-            game.exit_window = true
+            game.exit_window^ = true
         } else if rl.IsKeyPressed(.N) {
             game.phase = .Playing
         }
@@ -31,7 +31,7 @@ handle_input :: proc(game: ^state.Game) {
 
     }//_
 
-    handle_theme_toggle(game)
+    handle_theme_toggle(&game)
     handle_keys(game)
     handle_tab_navigation(game)
     handle_lock_keys(game)
